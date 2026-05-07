@@ -9,12 +9,6 @@ java {
     }
 }
 
-import dev.sorokin.publish.gradle.plugin.entity.PublicationType
-
-publishPlugin {
-    publicationName = PublicationType.LIBRARY.publicationName
-}
-
 dependencies {
     compileOnly libs.lombok
     annotationProcessor libs.lombok
