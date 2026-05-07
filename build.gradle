@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'publish-plugin' version '1.0.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+import dev.sorokin.publish.gradle.plugin.entity.PublicationType
+
+publishPlugin {
+    publicationName = PublicationType.LIBRARY.publicationName
+}
+
+dependencies {
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+
+    testCompileOnly libs.lombok
+    testAnnotationProcessor libs.lombok
+
+    testImplementation libs.junit.jupiter
+}
+
+test {
+    useJUnitPlatform()
+}
