@@ -1,3 +1,6 @@
 apply from: 'repositories.gradle'
 
 rootProject.name = 'service-locator'
+
+include 'service-locator-core'
+include 'service-locator-reflection'

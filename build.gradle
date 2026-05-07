@@ -1,24 +1,14 @@
 plugins {
-    id 'java'
-    id 'publish-plugin' version '1.0.0'
+    id 'publish-plugin' version '1.0.0' apply false
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'publish-plugin'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
     }
-}
-
-dependencies {
-    compileOnly libs.lombok
-    annotationProcessor libs.lombok
-
-    testCompileOnly libs.lombok
-    testAnnotationProcessor libs.lombok
-
-    testImplementation libs.junit.jupiter
-}
-
-test {
-    useJUnitPlatform()
 }

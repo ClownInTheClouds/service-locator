@@ -1,14 +1,14 @@
-package dev.sorokin.di.reflection;
+package dev.sorokin.servicelocator.reflection;
 
 import lombok.RequiredArgsConstructor;
 
 import java.util.function.Supplier;
 
 @RequiredArgsConstructor
-public class ReflectionProvider<T> implements Supplier<T> {
+public class InjectingProvider<T> implements Supplier<T> {
 
     private final Class<T> type;
-    private final ReflectionServiceLocator reflectionServiceLocator;
+    private final ReflectiveServiceLocator reflectiveServiceLocator;
 
     @Override
     public T get() {
@@ -19,7 +19,7 @@ public class ReflectionProvider<T> implements Supplier<T> {
             var params = new Object[paramTypes.length];
 
             for (int i = 0; i < paramTypes.length; i++) {
-                params[i] = reflectionServiceLocator.getService(paramTypes[i]);
+                params[i] = reflectiveServiceLocator.getService(paramTypes[i]);
             }
 
             return type.cast(constructor.newInstance(params));

@@ -1,4 +1,4 @@
-package dev.sorokin.di;
+package dev.sorokin.servicelocator;
 
 public interface Module {
 

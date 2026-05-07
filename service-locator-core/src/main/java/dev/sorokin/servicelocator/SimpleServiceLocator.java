@@ -1,4 +1,4 @@
-package dev.sorokin.di;
+package dev.sorokin.servicelocator;
 
 import java.util.HashMap;
 import java.util.Map;
