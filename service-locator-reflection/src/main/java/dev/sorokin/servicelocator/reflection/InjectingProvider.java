@@ -1,14 +1,16 @@
 package dev.sorokin.servicelocator.reflection;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.function.Supplier;
 
-@RequiredArgsConstructor
 public class InjectingProvider<T> implements Supplier<T> {
 
     private final Class<T> type;
     private final ReflectiveServiceLocator reflectiveServiceLocator;
+
+    public InjectingProvider(Class<T> type, ReflectiveServiceLocator reflectiveServiceLocator) {
+        this.type = type;
+        this.reflectiveServiceLocator = reflectiveServiceLocator;
+    }
 
     @Override
     public T get() {

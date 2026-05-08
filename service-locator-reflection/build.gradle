@@ -1,6 +1,3 @@
 dependencies {
     implementation project(':service-locator-core')
-
-    compileOnly libs.lombok
-    annotationProcessor libs.lombok
 }
