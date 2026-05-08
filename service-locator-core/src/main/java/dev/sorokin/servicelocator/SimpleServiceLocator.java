@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 public class SimpleServiceLocator implements ServiceLocator {
 
     protected final Map<Class<?>, Supplier<?>> factories = new HashMap<>();
-    protected final Map<Class<?>, Object> singletons = new HashMap<>();
+    protected final Map<Class<?>, Object> instances = new HashMap<>();
 
     @Override
     public void install(Module module, Module... additional) {
@@ -20,7 +20,7 @@ public class SimpleServiceLocator implements ServiceLocator {
 
     @Override
     public <T> void addInstance(Class<T> type, T instance) {
-        singletons.put(type, instance);
+        instances.put(type, instance);
     }
 
     @Override
@@ -29,19 +29,14 @@ public class SimpleServiceLocator implements ServiceLocator {
     }
 
     @Override
-    public <T> T getService(Class<T> type) {
-        if (singletons.containsKey(type)) {
-            return type.cast(singletons.get(type));
-        }
-
-        var factory = factories.get(type);
-        if (factory == null) {
-            throw new RuntimeException("No factory for " + type);
-        }
-
-        var singleton = factory.get();
-        singletons.put(type, singleton);
-
-        return type.cast(singleton);
+    public <T> T getService(Class<T> serviceType) {
+        var serviceInstance = instances.computeIfAbsent(serviceType, type -> {
+            var factory = factories.get(type);
+            if (factory == null) {
+                throw new RuntimeException("No factory registered for " + type);
+            }
+            return factory.get();
+        });
+        return serviceType.cast(serviceInstance);
     }
 }
