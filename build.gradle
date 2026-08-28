@@ -1,5 +1,5 @@
 plugins {
-    id 'publish-plugin' version '1.0.0' apply false
+    id 'publish-plugin' version '2.0.0' apply false
 }
 
 subprojects {
