@@ -1,32 +1,53 @@
 package dev.sorokin.servicelocator.reflection;
 
+import dev.sorokin.servicelocator.ServiceRegistry;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.function.Supplier;
 
-public class InjectingProvider<T> implements Supplier<T> {
+final class InjectingProvider<T> implements Supplier<T> {
 
-    private final Class<T> type;
-    private final ReflectiveServiceLocator reflectiveServiceLocator;
+    private final Class<? extends T> implementation;
+    private final ServiceRegistry serviceRegistry;
 
-    public InjectingProvider(Class<T> type, ReflectiveServiceLocator reflectiveServiceLocator) {
-        this.type = type;
-        this.reflectiveServiceLocator = reflectiveServiceLocator;
+    InjectingProvider(Class<? extends T> implementation, ServiceRegistry serviceRegistry) {
+        this.implementation = implementation;
+        this.serviceRegistry = serviceRegistry;
     }
 
     @Override
     public T get() {
+        var constructors = implementation.getConstructors();
+        if (constructors.length != 1) {
+            throw new IllegalStateException(
+                    "Type " + implementation.getName() + " must have exactly one public constructor "
+                            + "for reflective injection, found " + constructors.length
+            );
+        }
+        var constructor = constructors[0];
+        var paramTypes = constructor.getParameterTypes();
+        var params = new Object[paramTypes.length];
+        for (int i = 0; i < paramTypes.length; i++) {
+            params[i] = serviceRegistry.getService(paramTypes[i]);
+        }
+
+        MethodHandle handle;
         try {
-            var constructor = type.getConstructors()[0];
+            handle = MethodHandles.publicLookup().unreflectConstructor(constructor);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(
+                    "Cannot access constructor of " + implementation.getName()
+                            + " — is its package exported from the declaring module?", e
+            );
+        }
 
-            var paramTypes = constructor.getParameterTypes();
-            var params = new Object[paramTypes.length];
-
-            for (int i = 0; i < paramTypes.length; i++) {
-                params[i] = reflectiveServiceLocator.getService(paramTypes[i]);
-            }
-
-            return type.cast(constructor.newInstance(params));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        try {
+            return implementation.cast(handle.invokeWithArguments(params));
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new IllegalStateException("Constructor of " + implementation.getName() + " threw a checked exception", e);
         }
     }
 }
