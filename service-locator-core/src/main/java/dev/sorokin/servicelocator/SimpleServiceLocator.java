@@ -41,11 +41,11 @@ public class SimpleServiceLocator implements ServiceLocator {
 
         var descriptor = registrations.get(serviceType);
         if (descriptor == null) {
-            return null;
+            throw new IllegalStateException("No factory or instance registered for " + serviceType.getName());
         }
         var created = (descriptor instanceof ServiceDescriptor.Prototype<?>)
-            ? resolvePrototype(serviceType, descriptor.factory())
-            : resolveSingleton(serviceType, descriptor.factory());
+                ? resolvePrototype(serviceType, descriptor.factory())
+                : resolveSingleton(serviceType, descriptor.factory());
         return serviceType.cast(created);
     }
 
