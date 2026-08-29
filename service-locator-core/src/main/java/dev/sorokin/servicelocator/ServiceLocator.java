@@ -8,7 +8,7 @@ public interface ServiceLocator {
 
     <T> void addInstance(Class<T> type, T instance);
 
-    <T> void addFactory(Class<T> type, Supplier<T> factory);
+    <T> void addFactory(Class<T> type, Supplier<T> factory, Scope scope);
 
     <T> T getService(Class<T> type);
 }

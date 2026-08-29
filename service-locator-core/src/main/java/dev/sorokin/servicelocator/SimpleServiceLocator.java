@@ -11,9 +11,8 @@ public class SimpleServiceLocator implements ServiceLocator {
     private static final ScopedValue<Set<Class<?>>> CREATING = ScopedValue.newInstance();
 
     private final ConcurrentMap<Class<?>, CompletableFuture<Object>> pending = new ConcurrentHashMap<>();
-
-    protected final ConcurrentMap<Class<?>, Supplier<?>> factories = new ConcurrentHashMap<>();
-    protected final ConcurrentMap<Class<?>, Object> instances = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<?>, ServiceDescriptor<?>> registrations = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<?>, Object> instances = new ConcurrentHashMap<>();
 
     @Override
     public void install(Module module, Module... additional) {
@@ -30,8 +29,11 @@ public class SimpleServiceLocator implements ServiceLocator {
     }
 
     @Override
-    public <T> void addFactory(Class<T> type, Supplier<T> factory) {
-        factories.put(type, factory);
+    public <T> void addFactory(Class<T> type, Supplier<T> factory, Scope scope) {
+        registrations.put(type, switch (scope) {
+            case SINGLETON -> new ServiceDescriptor.Singleton<>(factory);
+            case PROTOTYPE -> new ServiceDescriptor.Prototype<>(factory);
+        });
     }
 
     @Override
@@ -41,10 +43,23 @@ public class SimpleServiceLocator implements ServiceLocator {
             return serviceType.cast(instance);
         }
 
-        if (CREATING.orElse(Set.of()).contains(serviceType)) {
-            throw new IllegalStateException("Circular dependency detected for: " + serviceType.getName());
+        var descriptor = registrations.get(serviceType);
+        if (descriptor == null) {
+            return null;
         }
+        var created = (descriptor instanceof ServiceDescriptor.Prototype<?>)
+            ? resolvePrototype(serviceType, descriptor.factory())
+            : resolveSingleton(serviceType, descriptor.factory());
+        return serviceType.cast(created);
+    }
 
+    private Object resolvePrototype(Class<?> serviceType, Supplier<?> factory) {
+        checkNotCircular(serviceType);
+        return createInstance(serviceType, factory);
+    }
+
+    private Object resolveSingleton(Class<?> serviceType, Supplier<?> factory) {
+        checkNotCircular(serviceType);
         var creatingFuture = new CompletableFuture<>();
         var existing = pending.putIfAbsent(serviceType, creatingFuture);
         if (existing != null) {
@@ -52,7 +67,7 @@ public class SimpleServiceLocator implements ServiceLocator {
         }
 
         try {
-            var created = createInstance(serviceType);
+            var created = createInstance(serviceType, factory);
             instances.put(serviceType, created);
             creatingFuture.complete(created);
             return serviceType.cast(created);
@@ -61,6 +76,12 @@ public class SimpleServiceLocator implements ServiceLocator {
             throw throwable;
         } finally {
             pending.remove(serviceType, creatingFuture);
+        }
+    }
+
+    private <T> void checkNotCircular(Class<T> serviceType) {
+        if (CREATING.orElse(Set.of()).contains(serviceType)) {
+            throw new IllegalStateException("Circular dependency detected for: " + serviceType.getName());
         }
     }
 
@@ -79,8 +100,7 @@ public class SimpleServiceLocator implements ServiceLocator {
         }
     }
 
-    private Object createInstance(Class<?> type) {
-        var factory = factories.get(type);
+    private Object createInstance(Class<?> type, Supplier<?> factory) {
         if (factory == null) {
             throw new IllegalStateException("No factory registered for " + type.getName());
         }
