@@ -16,11 +16,7 @@ public class SimpleServiceLocator implements ServiceLocator {
 
     @Override
     public void install(Module module, Module... additional) {
-        module.configure(this);
-        if (additional == null) return;
-        for (var additionalModule : additional) {
-            additionalModule.configure(this);
-        }
+        ServiceLocator.configureAll(this, module, additional);
     }
 
     @Override
