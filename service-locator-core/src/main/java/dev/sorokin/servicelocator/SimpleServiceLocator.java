@@ -7,12 +7,22 @@ import java.util.function.Supplier;
 
 public class SimpleServiceLocator implements ServiceLocator {
 
-    private static final long WAIT_TIMEOUT_SECONDS = 10;
+    private static final long DEFAULT_WAIT_TIMEOUT_SECONDS = 10;
     private static final ScopedValue<Set<Class<?>>> CREATING = ScopedValue.newInstance();
 
     private final ConcurrentMap<Class<?>, CompletableFuture<Object>> pending = new ConcurrentHashMap<>();
     private final ConcurrentMap<Class<?>, ServiceDescriptor<?>> registrations = new ConcurrentHashMap<>();
     private final ConcurrentMap<Class<?>, Object> instances = new ConcurrentHashMap<>();
+
+    private final long waitTimeoutSeconds;
+
+    public SimpleServiceLocator() {
+        this(DEFAULT_WAIT_TIMEOUT_SECONDS);
+    }
+
+    public SimpleServiceLocator(long waitTimeoutSeconds) {
+        this.waitTimeoutSeconds = waitTimeoutSeconds;
+    }
 
     @Override
     public void install(Module module, Module... additional) {
@@ -83,10 +93,10 @@ public class SimpleServiceLocator implements ServiceLocator {
 
     private <T> T awaitCreation(Class<T> serviceType, CompletableFuture<?> future) {
         try {
-            return serviceType.cast(future.get(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            return serviceType.cast(future.get(waitTimeoutSeconds, TimeUnit.SECONDS));
         } catch (TimeoutException e) {
             throw new IllegalStateException(
-                    "Timed out waiting for " + serviceType.getName() + " after " + WAIT_TIMEOUT_SECONDS + "s — "
+                    "Timed out waiting for " + serviceType.getName() + " after " + waitTimeoutSeconds + "s — "
                             + "вероятен дедлок между потоками, резолвящими взаимно зависимые сервисы.", e);
         } catch (ExecutionException e) {
             var cause = e.getCause();
