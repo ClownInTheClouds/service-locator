@@ -5,6 +5,7 @@ import dev.sorokin.servicelocator.Scope;
 import dev.sorokin.servicelocator.ServiceLocator;
 import dev.sorokin.servicelocator.SimpleServiceLocator;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class ReflectiveServiceLocator implements ServiceLocator, ReflectiveServiceRegistry {
@@ -16,7 +17,7 @@ public class ReflectiveServiceLocator implements ServiceLocator, ReflectiveServi
     }
 
     public ReflectiveServiceLocator(ServiceLocator delegate) {
-        this.delegate = delegate;
+        this.delegate = Objects.requireNonNull(delegate, "delegate must not be null");
     }
 
     @Override

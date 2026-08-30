@@ -1,7 +1,0 @@
-[versions]
-lombok = "1.18.46"
-junit = "5.11.4"
-
-[libraries]
-lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }

@@ -89,7 +89,12 @@ public class SimpleServiceLocator implements ServiceLocator {
                     "Timed out waiting for " + serviceType.getName() + " after " + WAIT_TIMEOUT_SECONDS + "s — "
                             + "вероятен дедлок между потоками, резолвящими взаимно зависимые сервисы.", e);
         } catch (ExecutionException e) {
-            throw (e.getCause() instanceof RuntimeException re) ? re : new RuntimeException(e.getCause());
+            var cause = e.getCause();
+            switch (cause) {
+                case RuntimeException re -> throw re;
+                case Error error -> throw error;
+                default -> throw new RuntimeException(cause);
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted while waiting for " + serviceType.getName(), e);

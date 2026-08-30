@@ -4,6 +4,8 @@ import dev.sorokin.servicelocator.ServiceRegistry;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.util.function.Supplier;
 
 final class InjectingProvider<T> implements Supplier<T> {
@@ -18,6 +20,7 @@ final class InjectingProvider<T> implements Supplier<T> {
 
     @Override
     public T get() {
+        validateInstantiable(implementation);
         var constructors = implementation.getConstructors();
         if (constructors.length != 1) {
             throw new IllegalStateException(
@@ -32,15 +35,7 @@ final class InjectingProvider<T> implements Supplier<T> {
             params[i] = serviceRegistry.getService(paramTypes[i]);
         }
 
-        MethodHandle handle;
-        try {
-            handle = MethodHandles.publicLookup().unreflectConstructor(constructor);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException(
-                    "Cannot access constructor of " + implementation.getName()
-                            + " — is its package exported from the declaring module?", e
-            );
-        }
+        var handle = getMethodHandle(constructor);
 
         try {
             return implementation.cast(handle.invokeWithArguments(params));
@@ -48,6 +43,31 @@ final class InjectingProvider<T> implements Supplier<T> {
             throw e;
         } catch (Throwable e) {
             throw new IllegalStateException("Constructor of " + implementation.getName() + " threw a checked exception", e);
+        }
+    }
+
+    private MethodHandle getMethodHandle(Constructor<?> constructor) {
+        try {
+            return MethodHandles.publicLookup().unreflectConstructor(constructor);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(
+                    "Cannot access constructor of " + implementation.getName()
+                            + " — is its package exported from the declaring module?", e
+            );
+        }
+    }
+
+    private static void validateInstantiable(Class<?> implementation) {
+        if (implementation.isInterface() || Modifier.isAbstract(implementation.getModifiers())) {
+            throw new IllegalStateException(
+                    "Type " + implementation.getName() + " is abstract or an interface and cannot be reflectively instantiated"
+            );
+        }
+        if (implementation.isMemberClass() && !Modifier.isStatic(implementation.getModifiers())) {
+            throw new IllegalStateException(
+                    "Type " + implementation.getName() + " is a non-static inner class; "
+                            + "make it static or top-level for reflective injection"
+            );
         }
     }
 }

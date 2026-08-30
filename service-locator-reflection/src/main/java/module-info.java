@@ -1,5 +1,5 @@
 module dev.sorokin.servicelocator.reflection {
-    requires dev.sorokin.servicelocator.core;
+    requires transitive dev.sorokin.servicelocator.core;
 
     exports dev.sorokin.servicelocator.reflection;
 }
