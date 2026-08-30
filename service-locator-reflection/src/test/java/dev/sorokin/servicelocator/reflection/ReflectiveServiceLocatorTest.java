@@ -14,9 +14,17 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests for {@link ReflectiveServiceLocator}, grouped by scenario.
+ *
+ * @author Sorokin Anton
+ */
 @ExtendWith(MockitoExtension.class)
 class ReflectiveServiceLocatorTest {
 
+    /**
+     * Plain (non-reflective) delegation to the wrapped {@link ServiceLocator}.
+     */
     @Nested
     class Delegation {
 
@@ -58,6 +66,9 @@ class ReflectiveServiceLocatorTest {
         }
     }
 
+    /**
+     * Reflective, constructor-based registration and resolution.
+     */
     @Nested
     class AutoWiring {
 
@@ -89,6 +100,9 @@ class ReflectiveServiceLocatorTest {
         }
     }
 
+    /**
+     * Enforcement of the "exactly one public constructor" requirement.
+     */
     @Nested
     class ConstructorSelection {
 
@@ -113,7 +127,11 @@ class ReflectiveServiceLocatorTest {
         }
     }
 
+    /**
+     * Rejection of types that cannot be reflectively instantiated at all.
+     */
     @Nested
+    @SuppressWarnings("SpellCheckingInspection")
     class InstantiabilityValidation {
 
         @Test
@@ -147,6 +165,9 @@ class ReflectiveServiceLocatorTest {
         }
     }
 
+    /**
+     * How exceptions thrown by the constructor itself propagate.
+     */
     @Nested
     class ExceptionPropagation {
 
@@ -171,6 +192,9 @@ class ReflectiveServiceLocatorTest {
         }
     }
 
+    /**
+     * {@link ReflectiveModule#configure(ServiceRegistry)}'s instanceof-based bridging.
+     */
     @Nested
     class ReflectiveModuleBridging {
 
@@ -222,7 +246,6 @@ class ReflectiveServiceLocatorTest {
         }
     }
 
-    @SuppressWarnings("unused")
     public static final class TwoPublicConstructors {
         public TwoPublicConstructors() {
         }

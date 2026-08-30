@@ -11,9 +11,17 @@ import java.util.function.Supplier;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests for {@link SimpleServiceLocator}, grouped by scenario.
+ *
+ * @author Sorokin Anton
+ */
 @ExtendWith(MockitoExtension.class)
 class SimpleServiceLocatorTest {
 
+    /**
+     * Pre-built instances registered via {@link SimpleServiceLocator#addInstance}.
+     */
     @Nested
     class InstanceRegistration {
 
@@ -40,6 +48,9 @@ class SimpleServiceLocatorTest {
         }
     }
 
+    /**
+     * {@link Scope#SINGLETON} resolution, including concurrent access.
+     */
     @Nested
     class SingletonScope {
 
@@ -96,6 +107,9 @@ class SimpleServiceLocatorTest {
         }
     }
 
+    /**
+     * {@link Scope#PROTOTYPE} resolution.
+     */
     @Nested
     class PrototypeScope {
 
@@ -116,6 +130,9 @@ class SimpleServiceLocatorTest {
         }
     }
 
+    /**
+     * Failure modes: unregistered types and circular dependencies.
+     */
     @Nested
     class ErrorHandling {
 
@@ -146,6 +163,9 @@ class SimpleServiceLocatorTest {
         }
     }
 
+    /**
+     * Cross-thread mutual dependencies that cannot be detected and must instead time out.
+     */
     @Nested
     class CrossThreadDeadlock {
 
@@ -177,6 +197,9 @@ class SimpleServiceLocatorTest {
         }
     }
 
+    /**
+     * {@link SimpleServiceLocator#install} and {@link ServiceLocator#configureAll}.
+     */
     @Nested
     class ModuleInstallation {
 
