@@ -131,7 +131,6 @@ class ReflectiveServiceLocatorTest {
      * Rejection of types that cannot be reflectively instantiated at all.
      */
     @Nested
-    @SuppressWarnings("SpellCheckingInspection")
     class InstantiabilityValidation {
 
         @Test
@@ -247,9 +246,11 @@ class ReflectiveServiceLocatorTest {
     }
 
     public static final class TwoPublicConstructors {
+        @SuppressWarnings("unused")
         public TwoPublicConstructors() {
         }
 
+        @SuppressWarnings("unused")
         public TwoPublicConstructors(Gadget gadget) {
         }
     }
